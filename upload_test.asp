@@ -1,0 +1,3 @@
+<%
+Response.Write("{""status"":""success""}")
+%>
