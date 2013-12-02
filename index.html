@@ -1,0 +1,206 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>XHR2, SWF, Applet, Post通用上传组件 - jquery.uploader.js</title>
+	<link rel="stylesheet" type="text/css" href="uploader.css" />
+	<style type="text/css">
+	*{ margin:0; padding:0;}
+	body{ background:#EEE; color:#111; font:12px/1.5 "\5FAE\8F6F\96C5\9ED1",Arial,HELVETICA; padding:120px 0;}
+	.test_uploader{ background:#f4f4f4; border:1px solid #d7d7d7; margin:0 auto; width:960px;}
+	.test_uploader .title{ border:1px solid #FFF; border-bottom-color:#DDD; box-shadow:0 1px 5px rgba(0,0,0,.08); padding:10px 15px;}
+	.test_uploader .inner{ border:1px solid #FFF; border-top:0; padding:40px 0;}
+	/*.test_uploader .ds_uploader{ border:1px dashed #080;}*/
+	
+	.test_uploader .title em{ cursor:pointer; font-style:normal;}
+	.ds_uploader_tips{ line-height:1.8; white-space:nowrap; word-break:normal;}
+	.hide{ display:none;}
+	</style>
+</head>
+<body>
+	<div class="test_uploader">
+		<div class="title"><h1><em title="点击优先使用此方式上传">Ajax</em>, <em title="点击优先使用此方式上传">SWF</em>, <em title="点击优先使用此方式上传">Iframe</em> Uploader</h1></div>
+		<div class="inner" id="test_uploader_inner">
+			<!-- Place Holder -->
+			<div class="ds_uploader_shell">
+				<div class="ds_uploader"><div class="ds_uploader_loading"><span title="正在载入上传控件，请稍候..."><i></i><em>Loading...</em></span></div></div>
+			</div>
+
+			<!-- Uploader DOM -->
+			<div class="ds_uploader_shell hide">
+				<div class="ds_uploader">
+					<!-- <div class="ds_uploader_loading"><span title="正在载入上传控件，请稍候..."><i></i><em>Loading...</em></span></div>
+					<div class="ds_uploader_note">
+						<span class="error"><i></i><strong>控件不小心加载失败了，请重试</strong><a href="javascript:;">重新加载</a></span>
+					</div> -->
+
+					<div class="ds_uploader_chooser">
+						<form action="./" method="post" enctype="multipart/form-data">
+							<div class="ds_uploader_drager"><i></i>拖动文件到此上传<span class="pipe">或</span></div>
+							<div class="ds_uploader_btn" title="选择文件上传"><span><input type="file" name="upload_file" id="ds_upload_file" hidefocus /></span></div>
+						</form>
+						<div class="ds_uploader_tips">一些上传Tips...一些上传Tips...一些上传Tips...</div>
+					</div>
+					<div class="ds_uploader_info">
+						<!-- <div class="ds_uploader_note"><span class="success"><i></i><strong>上传成功，正在处理，请稍候...</strong></span></div> -->
+						<div class="ds_uploader_list">
+							<h3><i></i>上传列表</h3>
+							<ul>
+								<li class="uploading">
+									<span class="name">Martin-Rechsterlner-v1.2.ipa</span>
+									<div class="progress"><em style="width:50%"></em></div>
+									<div class="status">
+										<a href="javascript:;" class="btn">取消</a>
+									</div>
+									<div class="props">
+										<span class="type">ipa</span>
+										<span class="size">25.56M</span>
+										<span class="timer"><i></i>剩余时间<em>7小时25分</em></span>
+										<span class="speed">125Kb/s</span>
+									</div>
+								</li>
+								<li class="success">
+									<span class="name">Martin-Rechsterlner-v1.2.ipa</span>
+									<div class="progress"><em style="width:70%"></em></div>
+									<div class="status">
+										<span class="success"><i></i>成功</span>
+									</div>
+									<div class="props">
+										<span class="type">ipa</span>
+										<span class="size">25.56M</span>
+										<span class="timer"><i></i>剩余时间<em>7小时25分</em></span>
+										<span class="speed">125Kb/s</span>
+									</div>
+								</li>
+								<li class="error">
+									<span class="name">Martin-Rechsterlner-v1.2.ipa</span>
+									<div class="progress"><em style="width:90%"></em></div>
+									<div class="status">
+										<span class="error" title="服务器出错"><i></i>失败</span>
+										<a href="javascript:;" class="btn">重新上传</a>
+									</div>
+									<div class="props">
+										<span class="type">exe</span>
+										<span class="size">25.56M</span>
+										<span class="timer"><i></i>剩余时间<em>7小时25分</em></span>
+										<span class="speed">125Kb/s</span>
+									</div>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Uploader DOM End -->
+
+		</div>
+	</div>
+
+	<script type="text/javascript" src="/jquery-1.7.min.js"></script>
+	<script type="text/javascript" src="jquery.uploader.js"></script>
+	<script type="text/javascript">
+	//Debug
+	(function($){
+		if(!window.console){
+			var elem;
+			window.console = {
+				log: function(){
+					var str = [].join.call(arguments, '');
+					if(!elem){
+						elem = $(document.createElement('div'));
+						elem[0].style.cssText = 'background:#FFF;border:1px dashed #03F;padding:10px;position:absolute;right:0;top:0;white-space:nowrap';
+						elem.appendTo('body');
+						
+						elem.bind('dblclick', function(){
+							this.innerHTML = '';
+						});
+					}
+					elem.append('<p>'+ str.replace(/\n/g, '<br>').replace(/\t/g, '&emsp;&emsp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') +'</p>');
+				},
+				dir: $.noop,
+				group: $.noop,
+				groupEnd: $.noop
+			};
+		}
+
+		$('.test_uploader .title').delegate('em', 'click', function(){
+			location.hash = '#' + this.innerHTML.toLowerCase();
+			location.reload();
+		});
+	})(jQuery);
+	
+	
+	//Upload Widget
+	jQuery(function($){ //return;
+		var 
+		_eventLog = $.noop,
+		eventLog = function(){
+			return _eventLog.apply(this, arguments);
+		},
+		uploadWidget = window.testUploadWidget = new ds.UploadWidget({
+			shell: '#test_uploader_inner',
+			uploadTips: '支持多文件上传、文件列队，<a href="http://www.laoshu133.com/guestbook.asp#add_comment" target="_blank">需要帮助？</a><br>点击XHR,SWF字样可以手动切换上传模式',
+			
+			//Uploader Options
+			fieldName: 'file_data',
+			action: '/f/upload_test/uploader.php',
+			//allowExts: 'jpg,png,gif',
+			//accept: 'image/gif,image/jpeg,image/x-png',
+			maxFileSize: 10 * 1024 * 1024, //10M
+			maxFileCount: 3,
+			multiple: true,
+			type: location.hash.slice(1) || 'auto', //auto, ajax, swf, iframe
+			dataType: 'json',
+
+			//Callbacks
+			oninit: function(){
+				//Debug
+				this.debug = true;
+				window.testUploader = this;
+				_eventLog = function(e, data){
+					console.log('on' + e.type, ' file = ', e.file, ' data = ', data, e);
+				};
+			},
+			//onstartload: eventLog,
+			onready: function(e){
+				var ops = this.ops;
+
+				//Debug
+				if(this.debug){
+					eventLog.apply(this, arguments);
+					var tips = '<br>当前上传模式：<b>'+ this.type +'</b>，允许上传 <b>'+ ops.maxFileCount +'</b> 个文件';
+					if(e.uploadType === 'iframe'){
+						tips += '<br> <b>'+ e.uploadType +'</b> 上传最多只能有一个文件处于“等待上传”！';
+					}
+					uploadWidget.setTips(ops.uploadTips + tips);
+					
+					if(this.type === 'swf'){
+						console.log('swfVersion = ', this.getSwfVersion());
+
+						/*this.getSwfInstance().debug = function(msg){
+							console.group(' - swf upload - ');
+							console.log(msg);
+							console.groupEnd(' - swf upload - ');
+						};*/
+					}
+				}
+			},
+			onadd: eventLog,
+			onstartupload: eventLog,
+			//onprogress: eventLog,
+			onreceivedata: function(file, data){
+				if(!data || data.status !== 'success'){
+					//return false; //return false 可以阻止进入onupload回调
+				}
+			},
+			onupload: eventLog,
+			onerror: eventLog,
+			onabort: eventLog,
+			oncomplete: eventLog
+		});
+	});
+	</script>
+	
+	<script type="text/javascript" src="http://www.laoshu133.com/51_min.js"></script>
+</body>
+</html>
