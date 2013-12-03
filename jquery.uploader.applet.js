@@ -1,7 +1,7 @@
 /**
 * jquery.uploader.applet.js
 * @create: 2013.11.27
-* @update: 2013.11.27
+* @update: 2013.12.02
 * admin@laoshu133.com
 *
 * @deps jquery.uploader.js
@@ -46,12 +46,22 @@
 			}
 			return 0;
 		},
-		getAppletHTML: function(ops){
+		getAppletHTML: function(){
 			var 
-			appletOptions = mix(this.ops.appletOptions || {}, Uploader.defaultOptions.appletOptions),
-			tmpl = this.hasActiveXObject ? '<object id="{id}" name="{id}" class="{className}" style="{cssText}" width="{width}" height="{height}" codebase="{codebase}" classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"><param name="code" value="{code}"><param name="codebase" value="{codebase}"><param name="archive" value="{archive}"><param name="type" value="application/x-java-applet;version={version}"><param name="scriptable" value="true"><param name="mayscript" value="true" /></object>' : '<applet id="{id}" name="{id}" class="ds_appletuploader" style="{cssText}" codebase="{codebase}" code="{code}" archive="{archive}" width="{width}" height="{height}" scriptable="true" mayscript="true" type="application/x-java-applet;version={version}"></applet>';
+			ops = this.ops,
+			appletOptions = mix(ops.appletOptions || {}, Uploader.defaultOptions.appletOptions),
+			tmpl = this.hasActiveXObject ? '<object id="{id}" name="{id}" class="{className}" style="{cssText}" width="{width}" height="{height}" codebase="{codebase}" classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"><param name="code" value="{code}"><param name="codebase" value="{codebase}"><param name="archive" value="{archive}"><param name="type" value="application/x-java-applet;version={version}"><param name="scriptable" value="true"><param name="mayscript" value="true" /><param name="appletvars" value="{appletvars}" /></object>' : '<applet id="{id}" name="{id}" class="ds_appletuploader" style="{cssText}" codebase="{codebase}" code="{code}" archive="{archive}" width="{width}" height="{height}" scriptable="true" mayscript="true" type="application/x-java-applet;version={version}"><param name="appletvars" value="{appletvars}" /></applet>';
 
-			appletOptions.id = this.appletUploaderId;
+			mix(appletOptions, {
+				id: this.appletUploaderId,
+				action: ops.action,
+				multiple: ops.multiple,
+				maxFileCount: ops.maxFileCount,
+				maxFileSize: ops.maxFileSize,
+				allowExts: ops.allowExts
+			}, true);
+			appletOptions.appletvars = stringifyJSON(appletOptions).replace(/"/g, '&quot;');
+			//appletOptions.id = this.appletUploaderId;
 			return fill(tmpl, appletOptions);
 		},
 		getAppletAPI: function(){
@@ -62,14 +72,24 @@
 			api = instances[this.appletUploaderId];
 			if(!api){
 				api = instances[this.appletUploaderId] = {
-					callApplet: function(name, arg1, arg2, arg3){
-						var ret, elem, args;
+					getFile: function(fileData){
+						var ret = null;
+						fileData && self.eachQueue(function(file){
+							if(file.dataId === fileData.id){
+								ret = file;
+								return false;
+							}
+						});
+						return ret;
+					},
+					callApplet: function(name, args){
+						var ret, elem;
 						try{
 							elem = document.getElementById(self.appletUploaderId);
-							ret = elem.CallFunction(name, arg1, arg2, arg3);
+							ret = elem.CallFunction(name, stringifyJSON(args));
 						}
 						catch(ex){
-							self.fire('error', {
+							self.fireEvent('error', {
 								type: 'callapplet',
 								message: ex.message
 							});
@@ -78,6 +98,57 @@
 					},
 					addFile: function(file){
 						self.add(file);
+					},
+					uploadProgress: function(fileData, loaded, total){
+						var 
+						file = this.getFile(fileData),
+						stamp = file.progressStamp || +new Date(),
+						elapsed = (new Date() - stamp) / 1000,
+						prevLoaded = ~~file.loaded,
+						remaining = 0;
+						progress = 0,
+						speed = 0;
+
+						if(elapsed > 0){
+							progress = 100 * loaded / total;
+							speed = (loaded - prevLoaded) / elapsed;
+							remaining = 1000 * (total - loaded) / speed;
+						}
+
+						self.fireEvent({
+							type: '@progress',
+							remaining: remaining,
+							progress: progress,
+							speed: speed,
+							file: file
+						});
+						
+						file.progressStamp = stamp;
+						file.loaded = loaded;
+					},
+					uploadSuccess: function(fileData, data){
+						var file = this.getFile(fileData);
+						file.result = data;
+
+						self.fireEvent({
+							type: '@upload',
+							result: file.result || '',
+							file: file
+						});
+					},
+					uploadError: function(fileData, errCode, errMsg){
+						var 
+						file = this.getFile(fileData),
+						errMsgHash = {'-200':'Http error','-210':'Missing upload url','-220':'IO error','-230':'Security error','-240':'Upload limit exceeded','-250':'Upload failed','-260':'Specified file id not found','-270':'File validation failed','-280':'File cancelled','-290':'Upload stopped','-300':'Resize'};
+
+						file.errorMessage = errMsgHash[errCode] || errMsg;
+						file.errorCode = errCode;
+
+						self.fireEvent({
+							type: '@uploaderror',
+							message: file.errorMessage,
+							file: file
+						});
 					}
 				};
 			}
@@ -126,6 +197,27 @@
 				}, support);
 			}
 		},
+		appletUpload: function(file){
+			if(!file || !file.name){
+				return this._throwNoFile();
+			}
+
+			var api = this.getAppletAPI();
+			api.callApplet('StartUpload', file.fileData.id, stringifyJSON(this.ops.data));
+
+			this.fireEvent({
+				type: '@startupload',
+				file: file
+			});
+		},
+		appletAbort: function(file){
+			if(!file || !file.name){
+				return this._throwNoFile();
+			}
+
+			var api = this.getAppletAPI();
+			api.callApplet('CancelUpload', file.fileData.id);
+		},
 		appletEnable: function(){
 			this.getAppletAPI().callApplet('enable');
 		},
@@ -150,6 +242,29 @@
 		}
 	});
 	
+	//Funs
+	function stringifyJSON(obj){
+		if(global.JSON){
+			return JSON.stringify(obj);
+		}
+		var k, tmp, type, val, ret = String(obj);
+		if(obj && typeof obj === 'object'){
+			ret = '{';
+			for(k in obj){
+				val = obj[k];
+				type = typeof val;
+				if(obj.hasOwnProperty(k) && typeof val !== 'function'){
+					tmp = val === null || type === 'number' ? '' : '"';
+					ret += '"'+ k + '":' + tmp + val + tmp;
+					ret += ',';
+				}
+			}
+			ret = ret.length > 1 ? ret.slice(0, -1) : ret;
+			ret += '}';
+		}
+		return ret;
+	}
+
 	//Extend options
 	var 
 	defaultOptions = Uploader.defaultOptions,
@@ -157,7 +272,7 @@
 	typeOrder[typeOrder.length - 1] = 'applet';
 	typeOrder[typeOrder.length] = 'iframe';
 	defaultOptions.appletOptions = {
-		archive: 'Uploader.jar',
+		archive: 'uploader.jar',
 		code: 'Uploader.class',
 		codebase: './',
 		version: '1.6.0',

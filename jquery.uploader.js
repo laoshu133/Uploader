@@ -55,6 +55,7 @@ errEx.type 所有值参考：
 		filePanel: null,
 
 		//Upload Options
+		data: {},
 		action: '',
 		fieldName: 'ds_uploader',
 		autoUpload: true,
@@ -1373,7 +1374,7 @@ errEx.type 所有值参考：
 			self = this,
 			uploader = this.uploader = new Uploader(this.ops);
 			uploader.addListener('startload', function(e){
-				if(e.uploadType === 'swf'){
+				if(e.uploadType !== 'ajax' && e.uploadType !== 'iframe'){
 					var 
 					panelStyle = self.formPanel[0].style,
 					styleCache = {
@@ -1392,12 +1393,12 @@ errEx.type 所有值参考：
 					panelStyle.display = 'block';
 
 					this.addListener('ready', function(e){
-						if(e.uploadType === 'swf'){
+						if(e.uploadType !== 'ajax' && e.uploadType !== 'iframe'){
 							restoreStyle();
 						}
 					})
 					.addListener('error', function(e, data){
-						if(data && data.type === 'load' && data.uploadType === 'swf'){
+						if(data && data.type === 'load'){
 							this.removeListener('error', arguments.callee);
 
 							restoreStyle();

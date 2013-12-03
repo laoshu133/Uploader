@@ -75,6 +75,10 @@
 			uploadTips: '支持多文件上传、文件列队，<a href="http://www.laoshu133.com/guestbook.asp#add_comment" target="_blank">需要帮助？</a><br>点击XHR,SWF字样可以手动切换上传模式',
 			
 			//Uploader Options
+			data: {
+				user_id: 1234,
+				user_name: 'username'
+			},
 			action: '/f/upload_test/uploader.php',
 			//allowExts: 'jpg,png,gif',
 			//accept: 'image/gif,image/jpeg,image/x-png',
@@ -83,18 +87,21 @@
 			multiple: true,
 			loadTimeout: 30000,
 			type: location.hash.slice(1) || 'auto', //auto, ajax, swf, iframe
-			typeOrder: ['applet', 'ajax', 'swf', 'iframe'],
+			//typeOrder: ['applet', 'ajax', 'swf', 'iframe'],
+			typeOrder: ['applet'],
 			dataType: 'json',
 			
 			//Applet Options
 			appletOptions: {
-				archive: 'Uploader.jar',
+				archive: 'uploader.jar',
 				code: 'Uploader.class',
 				codebase: './',
 				version: '1.6.0',
-				cssText: 'position:absolute;visibility:hidden',
-				height: 1,
-				width: 1
+
+				//Others
+				host: '127.0.0.1',
+				username: 'username',
+				userid: 1234
 			},
 			
 			//Callbacks
