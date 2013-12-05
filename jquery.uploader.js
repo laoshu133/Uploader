@@ -20,7 +20,7 @@ errEx: {
 errEx.type 所有值参考：
 	1. load, 单个控件加载失败或者加载超时触发；此时errEx会有uploadType参数，表示加载的是什么控件；可能多次触发
 	2. support, 所有支持（指定）的控件都加载或初始化失败；此时errEx会有uploadType参数，表示最后一次加载的是什么控件；只会触发一次
-	3. add, 在添加文件时，超过设定的文件最大个数，单个文件扩展名不合法，单个大小超过设定值，ops.onbeforeadd回调时return false都会触发，其中除“超过设定的文件最大个数”时，其余errEx会有file参数，表示当前出错的文件；可能多次触发
+	3. add, 在添加文件时，超过设定的文件最大个数，单个文件扩展名不合法，单个大小超过设定值，ops.onbeforeadd回调时return false都会触发，其中除“超过设定的文件最大个数”时，参数event会有file属性，表示当前出错的文件；可能多次触发
 	4. nofile, 当需要进行某些操作（例如：add,upload,abort）时，未传入文件时触发；可能多次触发
 	5. beforeupload, 一般不会出现此错误，只有当扩展了自定义方法或者重写了部分upload方法时触发；可能多次触发
 	5. upload, 当上传过程中出错，或者服务返回状态不为200时触发，当上传类型为iframe时不会触发此回调；可能多次触发
@@ -231,7 +231,6 @@ errEx.type 所有值参考：
 				if(hasErr){
 					file.setState('error', message);
 					this.fireEvent(mix({type: 'error'}, e), {
-						file: file,
 						type: errType,
 						message: message
 					});
@@ -265,7 +264,6 @@ errEx.type 所有值参考：
 				e.file.setState('error', errMsg);
 
 				this.fireEvent(mix({type: 'error'}, e), {
-					file: e.file,
 					type: 'upload',
 					message: errMsg
 				});
@@ -312,12 +310,11 @@ errEx.type 所有值参考：
 		},
 		//Enable, Disbale, Reset, Destroy
 		_callTypeFunc: function(name){
-			var fnName = this.type + name;
-			if(typeof this[fnName] === 'function'){
-				this[fnName].apply(this, [].slice.call(arguments, 1));
-				return true;
+			var fnName = this.type + name, args = [].slice.call(arguments, 1);
+			if(typeof this[fnName] !== 'function' || this[fnName].apply(this, args) === false){
+				return false;
 			}
-			return false;
+			return true;
 		},
 		enable: function(){
 			if(this.disabled){
@@ -436,8 +433,7 @@ errEx.type 所有值参考：
 					else{
 						this.fireEvent('error', {
 							type: 'add',
-							message: errMsg,
-							file: file
+							message: errMsg
 						});
 					}
 				}
@@ -478,31 +474,39 @@ errEx.type 所有值参考：
 			return this;
 		},
 		upload: function(file){
-			if(!file || !file.name || this !== file.uploader){
+			if(!file || !file.name){
 				return this._throwNoFile();
 			}
 
 			var 
 			ops = this.ops,
 			type = 'beforeupload',
-			message = 'Uploader uninitialized Or status error';
-			if(this.status === 'ready' && ops.onbeforeupload.call(this, file) !== false){
+			errMsg = 'Uploader uninitialized Or status error';
+			if(this === file.uploader || this.status === 'ready' && ops.onbeforeupload.call(this, file) !== false){
+				errMsg = 'File Data error';
 				if(this._callTypeFunc('Upload', file)){
 					this.status = 'uploading';
 				}
 			}
 
 			if(this.status !== 'uploading'){
-				this.fireEvent('error', {
+				file.setState('error', errMsg);
+				this.fireEvent({
+					type: 'error',
+					file: file
+				}, {
 					type: type,
-					message: message
+					message: errMsg
 				});
+
+				this.status = 'ready';
+				this.start();
 			}
 
 			return this;
 		},
 		abort: function(file){
-			if(!file || !file.name || this !== file.uploader){
+			if(!file || !file.name){
 				return this._throwNoFile();
 			}
 
@@ -532,22 +536,25 @@ errEx.type 所有值参考：
 			return this;
 		},
 		remove: function(file){
-			if(!file || !file.name || this !== file.uploader){
+			if(!file || !file.name){
 				return this._throwNoFile();
 			}
-			this.abort(file);
-			this._callTypeFunc('Remove', file);
 
-			if(file === this.uploadQueue[file.uploadIndex]){
-				delete this.uploadQueue[file.uploadIndex];
-				this.fileCount--;
+			if(this === file.uploader){
+				this.abort(file);
+				this._callTypeFunc('Remove', file);
+
+				if(file === this.uploadQueue[file.uploadIndex]){
+					delete this.uploadQueue[file.uploadIndex];
+					this.fileCount--;
+				}
+				file.destroy();
+
+				this.fireEvent({
+					type: 'remove',
+					file: file
+				});
 			}
-			file.destroy();
-
-			this.fireEvent({
-				type: 'remove',
-				file: file
-			});
 			return this;
 		},
 		//Events
@@ -662,6 +669,11 @@ errEx.type 所有值参考：
 		ajaxUpload: function(file){
 			if(!file || !file.name){
 				return this._throwNoFile();
+			}
+
+			//Simple validation File
+			if(!file.fileData || !file.fileData.type){
+				return false;
 			}
 
 			var
@@ -782,6 +794,10 @@ errEx.type 所有值参考：
 		iframeUpload: function(file){
 			if(!file || !file.name){
 				return this._throwNoFile();
+			}
+
+			if(!this.input.val()){
+				return false;
 			}
 
 			var 
@@ -1165,6 +1181,10 @@ errEx.type 所有值参考：
 				return this._throwNoFile();
 			}
 
+			if(!file.fileData || !file.fileData.id){
+				return false;
+			}
+
 			var api = this.getSwfAPI();
 			api.callFlash('StartUpload', file.fileData.id);
 			api.callFlash('ReturnUploadStart', true);
@@ -1286,6 +1306,7 @@ errEx.type 所有值参考：
 					if(this.uploader && this.uploader.support.reupload){
 						this.getDOM('.reupload').removeClass('hide');
 					}
+					this.getDOM('.abort').removeClass('hide');
 					statusElem.html('<i></i>失败');
 					this.setProgress(100, 0, 0);
 					break;
