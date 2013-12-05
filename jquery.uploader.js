@@ -153,6 +153,38 @@ errEx.type 所有值参考：
 				if(support && support.enabled){
 					mix(this.support, support, true);
 					this.fireEvent(mix({type: 'ready'}, e));
+
+					//Queue Data
+					var 
+					files = [],
+					ops = this.ops,
+					queueData = ops.queueData,
+					autoUpload = ops.autoUpload;
+					if(queueData && queueData.length > 0){
+						ops.autoUpload = false;
+						for(var i=0,len=queueData.length; i<len; i++){
+							if(queueData[i] && queueData[i].name){
+								files.push(new File(queueData[i]));
+							}
+						}
+						this.add(files);
+						this.eachQueue(function(file){
+							var data = file.fileData;
+							if(data && (data.status === 'success' || data.status === 'error')){
+								this.fireEvent({
+									type: data.status === 'success' ? '@upload' : '@uploaderror',
+									message: data.message || '',
+									result: data.result,
+									file: file
+								});
+							}
+							else if(data && data.status){
+								file.setState(data.status);
+								data.progress && file.setProgress(data.progress);
+							}
+						});
+						ops.autoUpload = autoUpload;
+					}
 				}
 				else{
 					this.initHandler(this.typeIndex + 1);
@@ -1180,6 +1212,9 @@ errEx.type 所有值参考：
 
 	//File
 	var File = Uploader.File = function(data){
+		if(data instanceof File){
+			return data;
+		}
 		this.init(data || {});
 	};
 	File.prototype = {
