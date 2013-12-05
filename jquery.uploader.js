@@ -635,9 +635,15 @@ errEx.type 所有值参考：
 			var
 			self = this,
 			ops = this.ops,
-			data = new FormData(),
+			data = ops.data,
+			formData = new FormData(),
 			xhr = file.xhr = new XMLHttpRequest();
-			data.append(ops.fieldName, file.fileData);
+			formData.append(ops.fieldName, file.fileData);
+			if(!!data){
+				for(var k in data){
+					formData.append(k, data[k]);
+				}
+			}
 
 			var loaded = 0, stamp = new Date();
 			xhr.upload.onprogress = function(e){
@@ -679,7 +685,7 @@ errEx.type 所有值参考：
 				}
 			};
 			xhr.open('POST', ops.action, true);
-			xhr.send(data);
+			xhr.send(formData);
 			
 			this.fireEvent({
 				type: '@startupload',
@@ -749,6 +755,7 @@ errEx.type 所有值参考：
 			var 
 			self = this,
 			ops = this.ops,
+			data = ops.data,
 			form = this.form[0],
 			iframe = file.iframe = this.getUploadIfrmae(),
 			attrCache = {
@@ -790,6 +797,19 @@ errEx.type 所有值参考：
 					});
 				}
 			});
+			
+			//Post data
+			var k, dataPanel, dataHTML = '';
+			if(!!data){
+				dataPanel = document.createElement('div');
+				for(k in data){
+					dataHTML += '<input type="hidden" name="'+ k +'" value="'+ data[k] +'" />';
+				}
+				dataPanel.innerHTML = dataHTML;
+				dataPanel.className = 'hide';
+				form.appendChild(dataPanel);
+			}
+
 			this.input.prop('disabled', false);
 			form.encoding = 'multipart/form-data';
 			form.target = iframe.name;
@@ -804,6 +824,7 @@ errEx.type 所有值参考：
 
 			//Restore uploader
 			this.rebuildInput();
+			form.removeChild(dataPanel);
 			form.target = attrCache.target;
 			form.action = attrCache.action;
 			form.target = attrCache.method;
@@ -897,14 +918,25 @@ errEx.type 所有值参考：
 			return fill(tmpl, swfOps);
 		},
 		getSwfVars: function(){
-			var ops = this.ops, swfOps = ops.swfOptions, panel = this.panel;
+			var 
+			params = [],
+			ops = this.ops,
+			data = ops.data,
+			swfOps = ops.swfOptions,
+			panel = this.panel;
+			if(!!data){
+				for(var k in data){
+					params.push(encodeURIComponent(k) +'='+ encodeURIComponent(data[k]));
+				}
+			}
+
 			return ['movieName=', encodeURIComponent('ds_uploader_swf_' + this.id),
 				'&amp;uploadURL=', encodeURIComponent(ops.action),
 				//'&amp;useQueryString=', '',
 				//'&amp;requeueOnError=', '',
 				'&amp;httpSuccess=', '',
 				//'&amp;assumeSuccessTimeout=', 0,
-				//'&amp;params=', '',
+				'&amp;params=', encodeURIComponent(params.join('&amp;')),
 				'&amp;filePostName=', encodeURIComponent(ops.fieldName),
 				'&amp;fileTypes=', encodeURIComponent('*.' + ops.allowExts.split(',').join(';*.')),
 				'&amp;fileTypesDescription=', encodeURIComponent(ops.acceptDescription),

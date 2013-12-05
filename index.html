@@ -142,6 +142,11 @@
 			uploadTips: '支持多文件上传、文件列队，<a href="http://www.laoshu133.com/guestbook.asp#add_comment" target="_blank">需要帮助？</a><br>点击XHR,SWF字样可以手动切换上传模式',
 			
 			//Uploader Options
+			data: {
+				postData: 1234,
+				postData2: 'abcd',
+				postData3: '汉字汉字'
+			},
 			fieldName: 'file_data',
 			action: '/f/upload_test/uploader.php',
 			//allowExts: 'jpg,png,gif',
@@ -201,6 +206,7 @@
 	});
 	</script>
 	
+	<!-- Count -->
 	<script type="text/javascript" src="http://www.laoshu133.com/51_min.js"></script>
 </body>
 </html>

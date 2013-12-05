@@ -166,8 +166,14 @@
 				}
 
 				var self = this, api = this.getAppletAPI();
+				this.input.addClass('hide');
 				api.ready = function(){
 					self.appletEnable();
+					self.appletPanel.bind('click', function(){
+						var ops = self.ops;
+						api.callApplet(!ops.multiple || ops.maxFileCount === 1 ? 'chooseFile' : 'chooseFiles');
+					});
+
 					self.fireEvent({
 						type: '@ready',
 						uploadType: 'applet'
@@ -182,6 +188,7 @@
 					if(data && data.type === 'load' && data.uploadType === 'applet'){
 						this.removeListener('error', arguments.callee);
 
+						self.input.removeClass('hide');
 						this.appletDestroy();
 					}
 				});
