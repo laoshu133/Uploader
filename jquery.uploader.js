@@ -162,28 +162,28 @@ errEx.type 所有值参考：
 					autoUpload = ops.autoUpload;
 					if(queueData && queueData.length > 0){
 						ops.autoUpload = false;
-						for(var i=0,len=queueData.length; i<len; i++){
-							if(queueData[i] && queueData[i].name){
-								files.push(new File(queueData[i]));
+						for(var data,file,i=0,len=queueData.length; i<len; i++){
+							if((data = queueData[i]) && data.name){
+								file = new File(data);
+								if(data.status){
+									file.setState(data.status);
+									data.progress && file.setProgress(data.progress);
+								}
+								files.push(file);
 							}
 						}
 						this.add(files);
+						ops.autoUpload = autoUpload;
 						this.eachQueue(function(file){
-							var data = file.fileData;
-							if(data && (data.status === 'success' || data.status === 'error')){
+							if(file.status === 'success' || file.status === 'error'){
 								this.fireEvent({
-									type: data.status === 'success' ? '@upload' : '@uploaderror',
-									message: data.message || '',
-									result: data.result,
+									type: file.status === 'success' ? '@upload' : '@uploaderror',
+									message: file.fileData.message || '',
+									result: file.fileData.result,
 									file: file
 								});
 							}
-							else if(data && data.status){
-								file.setState(data.status);
-								data.progress && file.setProgress(data.progress);
-							}
 						});
-						ops.autoUpload = autoUpload;
 					}
 				}
 				else{
@@ -207,7 +207,7 @@ errEx.type 所有值参考：
 				ops = this.ops, dataType = ops.dataType,
 				hasErr = false, complete = false, uploaded = 0;
 
-				if(dataType === 'json'){
+				if(dataType === 'json' && typeof ret === 'string'){
 					try{
 						ret = $.parseJSON(ret);
 					}
