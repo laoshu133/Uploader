@@ -777,6 +777,12 @@ errEx.type 所有值参考：
 				this.addListener('add', function(file){
 					//Only one upload thread
 					this.disable();
+				})
+				.addListener('@upload', function(file){
+					//For ops.queueData
+					if(this.ops.maxFileCount <= 0 || this.fileCount < this.ops.maxFileCount){
+						this.enable();
+					}
 				});
 				this.input.bind('change.ds_uploader', function(){
 					var name = this.value.replace(/\\/g, '/');
@@ -828,7 +834,6 @@ errEx.type 所有值参考：
 				clearInterval(file.progressTimer);
 				delete file.iframe;
 				iframe.destroy();
-				//self.enable();
 
 				if(!hasErr){
 					self.fireEvent({
