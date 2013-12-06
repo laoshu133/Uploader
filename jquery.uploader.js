@@ -672,7 +672,7 @@ errEx.type 所有值参考：
 			}
 
 			//Simple validation File
-			if(!file.fileData || 'type' in file.fileData){
+			if(!file.fileData || !('type' in file.fileData)){
 				return false;
 			}
 
