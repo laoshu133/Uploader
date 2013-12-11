@@ -273,9 +273,10 @@ errEx.type 所有值参考：
 			});
 		},
 		initHandler: function(inx){
+			inx = Math.max(0, ~~inx);
+
 			var 
 			self = this,
-			inx = Math.max(0, ~~inx),
 			type = this.ops.typeOrder[inx] || '',
 			handlerName = 'init' + type.slice(0, 1).toUpperCase() + type.slice(1) + 'Uploader';
 			if(typeof this[handlerName] === 'function'){
@@ -966,7 +967,7 @@ errEx.type 所有值参考：
 			swfOps.id = this.swfUploaderId;
 			swfOps.rurl = swfOps.url;
 			if(!this.ops.loadCache){
-				swfOps.rurl += (swfOps.url.indexOf('?') > -1 ? '&_=' : '?_=') + (+new Date);
+				swfOps.rurl += (swfOps.url.indexOf('?') > -1 ? '&_=' : '?_=') + (+new Date());
 			}
 			return fill(tmpl, swfOps);
 		},

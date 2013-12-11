@@ -180,7 +180,7 @@
 					}, support);
 
 					//only ready once
-					api.ready = noop;
+					api.ready = $.noop;
 				};
 
 				//be safe for load error
