@@ -171,7 +171,9 @@
 					self.appletEnable();
 					self.appletPanel.bind('click', function(){
 						var ops = self.ops;
-						api.callApplet(!ops.multiple || ops.maxFileCount === 1 ? 'chooseFile' : 'chooseFiles');
+						if(!self.disabled){
+							api.callApplet(!ops.multiple || ops.maxFileCount === 1 ? 'chooseFile' : 'chooseFiles');
+						}
 					});
 
 					self.fireEvent({
@@ -210,7 +212,7 @@
 			}
 
 			var api = this.getAppletAPI();
-			api.callApplet('StartUpload', file.fileData.id, stringifyJSON(this.ops.data));
+			api.callApplet('startUpload', file.fileData.id, stringifyJSON(this.ops.data));
 
 			this.fireEvent({
 				type: '@startupload',
@@ -223,7 +225,7 @@
 			}
 
 			var api = this.getAppletAPI();
-			api.callApplet('CancelUpload', file.fileData.id);
+			api.callApplet('cancelUpload', file.fileData.id);
 		},
 		appletEnable: function(){
 			this.getAppletAPI().callApplet('enable');
