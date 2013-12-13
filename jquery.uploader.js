@@ -421,6 +421,7 @@ errEx.type 所有值参考：
 
 					if(!hasErr){
 						file.uploadIndex = queue.length;
+						file.queuedStamp = +new Date();
 						file.uploader = this;
 						queue.push(file);
 						this.fileCount++;
@@ -690,15 +691,12 @@ errEx.type 所有值参考：
 				}
 			}
 
-			var loaded = 0, stamp = new Date();
 			xhr.upload.onprogress = function(e){
 				var 
-				now = new Date(),
-				elapsed = (now - stamp) / 1000,
+				speed = file.getSpeed(e.loaded),
 				progress = 100 * e.loaded / e.total,
-				speed = (e.loaded - loaded) / elapsed,
 				remaining = 1000 * (e.total - e.loaded) / speed;
-				
+
 				self.fireEvent({
 					type: '@progress',
 					remaining: remaining,
@@ -706,9 +704,6 @@ errEx.type 所有值参考：
 					speed: speed,
 					file: file
 				});
-
-				loaded = e.loaded;
-				stamp = now;
 			};
 			xhr.onreadystatechange = function(){
 				if(xhr.readyState === 4){
@@ -1076,18 +1071,9 @@ errEx.type 所有值参考：
 					uploadProgress: function(fileData, loaded, total){
 						var 
 						file = this.getFile(fileData),
-						stamp = file.progressStamp || +new Date(),
-						elapsed = (new Date() - stamp) / 1000,
-						prevLoaded = ~~file.loaded,
-						remaining = 0;
-						progress = 0,
-						speed = 0;
-
-						if(elapsed > 0){
-							progress = 100 * loaded / total;
-							speed = (loaded - prevLoaded) / elapsed;
-							remaining = 1000 * (total - loaded) / speed;
-						}
+						speed = file.getSpeed(loaded),
+						progress = 100 * loaded / total,
+						remaining = 1000 * (total - loaded) / speed;
 
 						self.fireEvent({
 							type: '@progress',
@@ -1096,9 +1082,6 @@ errEx.type 所有值参考：
 							speed: speed,
 							file: file
 						});
-						
-						file.progressStamp = stamp;
-						file.loaded = loaded;
 					},
 					uploadSuccess: function(fileData, data){
 						this.getFile(fileData).result = data;
@@ -1286,6 +1269,18 @@ errEx.type 所有值参考：
 				.addClass('ready');
 			}
 			return selector ? this.dom.find(selector) : this.dom;
+		},
+		getSpeed: function(loaded){
+			var 
+			now = +new Date(),
+			lastLoaded = this.lastLoaded || 0,
+			stamp = this.uploadStamp || this.queuedStamp || now;
+			if(now - stamp > 0 && loaded - lastLoaded > 0){
+				this.uploadStamp = now;
+				this.lastLoaded = loaded;
+				return 1000 * (loaded - lastLoaded) / (now - stamp);
+			}
+			return 0;
 		},
 		setState: function(status, message){
 			var 

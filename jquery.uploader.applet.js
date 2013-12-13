@@ -75,6 +75,9 @@
 					getFile: function(fileData){
 						var ret = null;
 						fileData && self.eachQueue(function(file){
+							if(!file.dataId){
+								file.dataId = file.fileData.id;
+							}
 							if(file.dataId === fileData.id){
 								ret = file;
 								return false;
@@ -102,18 +105,9 @@
 					uploadProgress: function(fileData, loaded, total){
 						var 
 						file = this.getFile(fileData),
-						stamp = file.progressStamp || +new Date(),
-						elapsed = (new Date() - stamp) / 1000,
-						prevLoaded = ~~file.loaded,
-						remaining = 0;
-						progress = 0,
-						speed = 0;
-
-						if(elapsed > 0){
-							progress = 100 * loaded / total;
-							speed = (loaded - prevLoaded) / elapsed;
-							remaining = 1000 * (total - loaded) / speed;
-						}
+						speed = file.getSpeed(loaded),
+						progress = 100 * loaded / total,
+						remaining = 1000 * (total - loaded) / speed;
 
 						self.fireEvent({
 							type: '@progress',
@@ -122,9 +116,6 @@
 							speed: speed,
 							file: file
 						});
-						
-						file.progressStamp = stamp;
-						file.loaded = loaded;
 					},
 					uploadSuccess: function(fileData, data){
 						var file = this.getFile(fileData);
