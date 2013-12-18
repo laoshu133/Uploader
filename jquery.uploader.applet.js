@@ -50,7 +50,7 @@
 			var 
 			ops = this.ops,
 			appletOptions = mix(ops.appletOptions || {}, Uploader.defaultOptions.appletOptions),
-			tmpl = this.hasActiveXObject ? '<object id="{id}" name="{id}" class="{className}" style="{cssText}" width="{width}" height="{height}" codebase="{codebase}" classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"><param name="code" value="{code}"><param name="codebase" value="{codebase}"><param name="archive" value="{archive}"><param name="type" value="application/x-java-applet;version={version}"><param name="scriptable" value="true"><param name="mayscript" value="true" /><param name="appletvars" value="{appletvars}" /></object>' : '<applet id="{id}" name="{id}" class="ds_appletuploader" style="{cssText}" codebase="{codebase}" code="{code}" archive="{archive}" width="{width}" height="{height}" scriptable="true" mayscript="true" type="application/x-java-applet;version={version}"><param name="appletvars" value="{appletvars}" /></applet>';
+			tmpl = this.hasActiveXObject ? '<object id="{id}" name="{id}" class="ds_appletuploader" style="{cssText}" width="{width}" height="{height}" codebase="{codebase}" classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"><param name="code" value="{code}"><param name="codebase" value="{codebase}"><param name="archive" value="{archive}"><param name="type" value="application/x-java-applet;version={version}"><param name="scriptable" value="true"><param name="mayscript" value="true" /><param name="appletvars" value="{appletvars}" /></object>' : '<applet id="{id}" name="{id}" class="ds_appletuploader" style="{cssText}" codebase="{codebase}" code="{code}" archive="{archive}" width="{width}" height="{height}" scriptable="true" mayscript="true" type="application/x-java-applet;version={version}"><param name="appletvars" value="{appletvars}" /></applet>';
 
 			mix(appletOptions, {
 				id: this.appletUploaderId,
@@ -203,7 +203,7 @@
 			}
 
 			var api = this.getAppletAPI();
-			api.callApplet('startUpload', file.fileData.id, stringifyJSON(this.ops.data));
+			api.callApplet('startUpload', {fileId:file.fileData.id});
 
 			this.fireEvent({
 				type: '@startupload',
@@ -216,7 +216,7 @@
 			}
 
 			var api = this.getAppletAPI();
-			api.callApplet('cancelUpload', file.fileData.id);
+			api.callApplet('cancelUpload', {fileId:file.fileData.id});
 		},
 		appletEnable: function(){
 			this.getAppletAPI().callApplet('enable');
@@ -276,7 +276,7 @@
 		code: 'Uploader.class',
 		codebase: './',
 		version: '1.6.0',
-		cssText: 'position:absolute;visibility:hidden',
+		cssText: 'position:absolute',
 		height: 1,
 		width: 1
 	};

@@ -83,7 +83,7 @@
 			//allowExts: 'jpg,png,gif',
 			//accept: 'image/gif,image/jpeg,image/x-png',
 			maxFileSize: 10 * 1024 * 1024, //10M
-			maxFileCount: 3,
+			maxFileCount: 1,
 			multiple: true,
 			loadTimeout: 30000,
 			type: location.hash.slice(1) || 'auto', //auto, ajax, swf, iframe
@@ -94,14 +94,15 @@
 			//Applet Options
 			appletOptions: {
 				archive: 'uploader.jar',
-				code: 'Uploader.class',
-				codebase: './',
+				code: 'com.weiphone.upload.client.FileChooser',
+				codebase: 'java/',
 				version: '1.6.0',
-
 				//Others
-				host: '127.0.0.1',
-				username: 'username',
-				userid: 1234
+				//host: 'http://127.0.0.1:8000',          // 测试
+				host: 'http://devabc.wecydia.com:8000',   // 测试
+				username: 'billhan',
+				userid: 1410791,
+				callback:'ready'
 			},
 			
 			//Callbacks
