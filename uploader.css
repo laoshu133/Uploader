@@ -20,7 +20,7 @@
 .ds_uploader .ds_uploader_chooser form.active{ background-position:0 -280px;}
 .ds_uploader .ds_uploader_chooser form.disabled{ background-position:0 -560px;}
 .ds_uploader .ds_uploader_drager{ font-size:18px; padding:40px 0 0; text-align:center; text-shadow:0 1px 0 #FFF;}
-.ds_uploader.ds_uploader_nodrag .ds_uploader_drager{ display:none;}
+.ds_uploader.ds_uploader_nodrag .ds_uploader_drager, .ds_uploader.ds_uploader_onloading .ds_uploader_btn{ display:none;}
 .ds_uploader .ds_uploader_drager i{ display:block; background:url(images/uploader.png) no-repeat -280px -240px; margin:0 auto 16px; height:38px; width:38px;}
 .ds_uploader .ds_uploader_drager .pipe{ display:block; color:#999; padding:14px 0;}
 .ds_uploader .ds_uploader_btn{ background:url(images/uploader.png) no-repeat -280px 0; cursor:pointer; margin-left:-104px; height:46px; width:208px; overflow:hidden; position:absolute; left:50%; top:188px;}
@@ -51,6 +51,7 @@
 .ds_uploader .ds_uploader_list .props i{ background-position:-300px -400px;}
 .ds_uploader .ds_uploader_list .type{ background:#4ebaff; border-radius:3px; color:#FFF; padding:0 5px; text-transform:uppercase;}
 .ds_uploader .ds_uploader_tips{ margin-top:10px; width:98%; position:absolute;}
+.ds_uploader.ds_uploader_onloading .ds_uploader_tips{ display:none;}
 @-moz-keyframes progress_ani{
 	0% { background-position:0 0;}
 	100% { background-position:-17px 0;}
