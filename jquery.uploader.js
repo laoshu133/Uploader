@@ -5,22 +5,26 @@
 * admin@laoshu133.com
 */
 /**
-onerror回调，也可以使用uploader.addListener('error', function(evt, errEx){...});
+onerror回调，也可以使用uploader.addListener('error', function(event, errorExt){...});
 回调参数如下：
-evt: {
+event: {
 	type: 'error',
 	// other params
 }
-errEx: {
+errorExt: {
 	type: 'error type',
 	message: 'error message'
 	// other params
 }
 
-errEx.type 所有值参考：
-	1. load, 单个控件加载失败或者加载超时触发；此时errEx会有uploadType参数，表示加载的是什么控件；可能多次触发
-	2. support, 所有支持（指定）的控件都加载或初始化失败；此时errEx会有uploadType参数，表示最后一次加载的是什么控件；只会触发一次
-	3. add, 在添加文件时，超过设定的文件最大个数，单个文件扩展名不合法，单个大小超过设定值，ops.onbeforeadd回调时return false都会触发，其中除“超过设定的文件最大个数”时，参数event会有file属性，表示当前出错的文件；可能多次触发
+errorExt.type 所有值参考：
+	1. load, 单个控件加载失败或者加载超时触发；此时errorExt会有uploadType参数，表示加载的是什么控件；可能多次触发
+	2. support, 所有支持（指定）的控件都加载或初始化失败；此时errorExt会有uploadType参数，表示最后一次加载的是什么控件；只会触发一次
+	3. add, 在添加文件时，以下情况会触发，可能多次触发；其中除 3.1 ，event具有file属性，表示当前出错的文件
+		3.1 超过设定的文件最大个数，errorExt.errorCode = -100
+		3.2 单个文件扩展名不合法，errorExt.errorCode = -110
+		3.3 单个文件大小超过设定值，errorExt.errorCode = -120
+		3.4 ops.onbeforeadd回调时return false，errorExt.errorCode = -190
 	4. nofile, 当需要进行某些操作（例如：add,upload,abort）时，未传入文件时触发；可能多次触发
 	5. beforeupload, 一般不会出现此错误，只有当扩展了自定义方法或者重写了部分upload方法时触发；可能多次触发
 	5. upload, 当上传过程中出错，或者服务返回状态不为200时触发，当上传类型为iframe时不会触发此回调；可能多次触发
@@ -390,7 +394,7 @@ errEx.type 所有值参考：
 			}
 			if(files && files.length > 0){
 				var
-				file, name,
+				file, name, errorCode,
 				hasErr = false, errMsg = '',
 				allowAllExt = ops.allowExts === '*',
 				allowExts = !allowAllExt ? ops.allowExts.replace(/,/g, '|') : '',
@@ -399,6 +403,7 @@ errEx.type 所有值参考：
 					if(ops.maxFileCount > 0 && this.fileCount >= ops.maxFileCount){
 						this.fireEvent('error', {
 							type: 'add',
+							errorCode: -100,
 							message: 'Files exceeds the maximum'
 						});
 						break;
@@ -407,15 +412,18 @@ errEx.type 所有值参考：
 					hasErr = false;
 					file = new File(files[i]);
 					if(!allowAllExt && !rallowExts.test(file.extName)){
-						errMsg = 'Extensions not allowed';
+						errMsg = 'File type not allowed';
+						errorCode = -110;
 						hasErr = true;
 					}
 					else if(file.fileData && file.fileData.size > ops.maxFileSize){
 						errMsg = 'File oversized';
+						errorCode = -120;
 						hasErr = true;
 					}
 					else if(ops.onbeforeadd.call(this, file) === false){
 						errMsg = 'Not allowed by onbeforeadd return false';
+						errorCode = -190;
 						hasErr = true;
 					}
 
@@ -433,9 +441,13 @@ errEx.type 所有值参考：
 						}, file);
 					}
 					else{
-						this.fireEvent('error', {
+						this.fireEvent({
+							type: 'error',
+							file: file
+						}, {
 							type: 'add',
-							message: errMsg
+							message: errMsg,
+							errorCode: errorCode
 						});
 					}
 				}
@@ -1067,6 +1079,9 @@ errEx.type 所有值参考：
 							}
 							delete this.tmpQueue;
 						}
+					},
+					fileQueueError: function(fileData){
+						self.add(fileData);
 					},
 					uploadProgress: function(fileData, loaded, total){
 						var 
