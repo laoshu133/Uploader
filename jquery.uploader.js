@@ -396,7 +396,7 @@ errorExt.type 所有值参考：
 				var
 				file, name, errorCode,
 				hasErr = false, errMsg = '',
-				allowAllExt = ops.allowExts === '*',
+				allowAllExt = ops.allowExts.replace(/[\.\*]/g, '') === '',
 				allowExts = !allowAllExt ? ops.allowExts.replace(/,/g, '|') : '',
 				rallowExts = !allowAllExt ? new RegExp('^(?:'+ allowExts +')$', 'i') : '';
 				for(var i = 0, len = files.length; i<len; i++){
