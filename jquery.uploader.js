@@ -218,7 +218,7 @@ errorExt.type 所有值参考：
 					catch(_){
 						hasErr = true;
 						errType = 'parsererror';
-						message = '数据转换错误';
+						message = 'Result data parse error';
 					}
 				}
 				else if(dataType === 'string'){
@@ -229,7 +229,7 @@ errorExt.type 所有值参考：
 				if(!hasErr && ops.onreceivedata.call(this, file, ret) === false){
 					hasErr = true;
 					errType = 'process';
-					message = '服务处理出错或者数据效验失败';
+					message = 'Server process error or data receive error';
 				}
 
 				if(hasErr){
@@ -264,7 +264,7 @@ errorExt.type 所有值参考：
 				}
 			})
 			.addListener('@uploaderror', function(e){
-				var errMsg = e.message || '网络错误，或者服务器出错';
+				var errMsg = e.message || 'Network error or server error';
 				e.file.setState('error', errMsg);
 
 				this.fireEvent(mix({type: 'error'}, e), {
@@ -967,7 +967,7 @@ errorExt.type 所有值参考：
 		},
 		getSwfHTML: function(){
 			var 
-			swfOps = mix(this.ops.swfOps || {}, Uploader.defaultOptions.swfOptions),
+			swfOps = mix(this.ops.swfOptions || {}, Uploader.defaultOptions.swfOptions),
 			tmpl = '<object id="{id}" width="{width}" height="{height}" class="{className}" style="{cssText}" data="{rurl}" type="application/x-shockwave-flash"><param name="allowScriptAccess" value="{allowScriptAccess}" /><param name="flashvars" value="{flashvars}" /><param name="quality" value="{quality}" /><param name="wmode" value="{wmode}" /><param name="movie" value="{rurl}" /></object>';
 
 			swfOps.flashvars = this.getSwfVars();
@@ -1470,7 +1470,7 @@ errorExt.type 所有值参考：
 			ops.input = shell.find('input[type=file]').eq(0);
 			ops.panel = ops.dragPanel = this.form;
 
-			this.setTips(ops.uploadTips).showLoading();
+			this.setTips(ops.uploadTips).showLoading(ops.loadingText);
 			this.initUploader();
 		},
 		initUploader: function(){
@@ -1521,6 +1521,7 @@ errorExt.type 所有值参考：
 			})
 			.addListener('error', function(e, ex){
 				if(ex.type === 'support'){
+					self.wrap.removeClass('ds_uploader_onloading').addClass('ds_uploader_onerror');
 					self.showLoadError();
 				}
 			})
@@ -1535,7 +1536,7 @@ errorExt.type 所有值参考：
 		},
 		showLoading: function(msg, title){
 			var elem = this.shell.find('.ds_uploader_loading');
-			elem.html('<span title="'+ (title||'正在载入上传控件，请稍候...') +'"><i></i><em>'+ (msg||'Loading...') +'</em></span>');
+			elem.html('<span title="'+ (title||'Loading...') +'"><i></i><em>'+ (msg||'Loading...') +'</em></span>');
 			elem.removeClass('hide');
 			return this;
 		},
@@ -1561,9 +1562,10 @@ errorExt.type 所有值参考：
 
 	//defaultOptions
 	UploadWidget.defaultOptions = {
-		htmlTmpl: '<div class="ds_uploader_shell"><div id="ds_uploader_{id}" class="ds_uploader ds_uploader_nodrag ds_uploader_nofile ds_uploader_onloading"><div class="ds_uploader_loading"><span title="正在载入上传控件，请稍候..."><i></i><em>Loading...</em></span></div><div class="ds_uploader_note hide"><span class="error"><i></i><strong>控件不小心加载失败了，请重试</strong><a href="javascript:location.reload();">重新加载</a></span></div><div class="ds_uploader_chooser hide"><form action="{action}" method="post" enctype="multipart/form-data"><div class="ds_uploader_drager"><i></i>拖动文件到此上传<span class="pipe">或</span></div><div class="ds_uploader_btn" title="选择文件上传"><span><input type="file" name="{fieldName}" id="ds_upload_file_{id}" hidefocus /></span></div></form><div class="ds_uploader_tips"></div></div><div class="ds_uploader_info"><div class="ds_uploader_note hide"><span class="success"><i></i><strong>上传成功，处理中，请稍候...</strong></span></div><div class="ds_uploader_list"><h3><i></i>上传列表</h3><ul></ul></div></div></div></div>',
+		htmlTmpl: '<div class="ds_uploader_shell"><div id="ds_uploader_{id}" class="ds_uploader ds_uploader_nodrag ds_uploader_nofile ds_uploader_onloading"><div class="ds_uploader_loading"><span><i></i><em>Loading...</em></span></div><div class="ds_uploader_note hide"><span class="error"><i></i><strong>控件不小心加载失败了，请重试</strong><a href="javascript:location.reload();">重新加载</a></span></div><div class="ds_uploader_chooser hide"><form action="{action}" method="post" enctype="multipart/form-data"><div class="ds_uploader_drager"><i></i>拖动文件到此上传<span class="pipe">或</span></div><div class="ds_uploader_btn" title="选择文件上传"><span><input type="file" name="{fieldName}" id="ds_upload_file_{id}" hidefocus /></span></div></form><div class="ds_uploader_tips"></div></div><div class="ds_uploader_info"><div class="ds_uploader_note hide"><span class="success"><i></i><strong>上传成功，处理中，请稍候...</strong></span></div><div class="ds_uploader_list"><h3><i></i>上传列表</h3><ul></ul></div></div></div></div>',
 		loadErrorText: '控件不小心加载失败了，请重试',
 		completeText: '上传成功，处理中，请稍候...',
+		loadingText: '努力加载加载中，请稍候...',
 		uploadTips: ''
     };
 	return UploadWidget;
