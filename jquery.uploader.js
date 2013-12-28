@@ -1502,7 +1502,7 @@ errorExt.type 所有值参考：
 						}
 					})
 					.addListener('error', function(e, data){
-						if(data && data.type === 'load'){
+						if(data && (data.type === 'load' || data.type === 'support')){
 							this.removeListener('error', arguments.callee);
 
 							restoreStyle();
