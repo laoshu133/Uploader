@@ -396,9 +396,8 @@ errorExt.type 所有值参考：
 				var
 				file, name, errorCode,
 				hasErr = false, errMsg = '',
-				allowAllExt = ops.allowExts.replace(/[\.\*]/g, '') === '',
-				allowExts = !allowAllExt ? ops.allowExts.replace(/,/g, '|') : '',
-				rallowExts = !allowAllExt ? new RegExp('^(?:'+ allowExts +')$', 'i') : '';
+				allowExts = ops.allowExts.replace(/[\.\*]/g, '').replace(/,/g, '|'),
+				rallowExts = allowExts !== '' ? new RegExp('^(?:'+ allowExts +')$', 'i') : '';
 				for(var i = 0, len = files.length; i<len; i++){
 					if(ops.maxFileCount > 0 && this.fileCount >= ops.maxFileCount){
 						this.fireEvent('error', {
@@ -411,7 +410,7 @@ errorExt.type 所有值参考：
 
 					hasErr = false;
 					file = new File(files[i]);
-					if(!allowAllExt && !rallowExts.test(file.extName)){
+					if(allowExts !== '' && !rallowExts.test(file.extName)){
 						errMsg = 'File type not allowed';
 						errorCode = -110;
 						hasErr = true;
@@ -629,7 +628,7 @@ errorExt.type 所有值参考：
 		testAjaxUpload: function(){
 			var support = {
 				ajaxUpload: !!(global.XMLHttpRequest && new XMLHttpRequest().upload), //XHR Level 2
-				multiple: !!(global.FormData || global.FileList) //多文件
+				multiple: !!(global.FormData && global.FileList) //多文件
 			};
 			support.enabled = support.reupload = support.ajaxUpload;
 			support.drag = support.ajaxUpload && support.multiple;
@@ -1397,12 +1396,12 @@ errorExt.type 所有值参考：
 	
 	//阻止冒泡、默认事件
 	function stopEvent(e){
-		if(!e){ return; }
-
-		e.preventDefault();
-		e.stopPropagation();
+		if(!!e){
+			e.preventDefault();
+			e.stopPropagation();
+		}
 	}
-	
+
 	//mix, fill
 	function mix(target, source, cover){
 		for(var k in source){
