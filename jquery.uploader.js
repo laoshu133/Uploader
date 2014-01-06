@@ -169,10 +169,8 @@ errorExt.type 所有值参考：
 						for(var data,file,i=0,len=queueData.length; i<len; i++){
 							if((data = queueData[i]) && data.name){
 								file = new File(data);
-								if(data.status){
-									file.setState(data.status);
-									data.progress && file.setProgress(data.progress);
-								}
+								file.setState(data.status || 'success');
+								data.progress && file.setProgress(data.progress);
 								files.push(file);
 							}
 						}
@@ -1572,25 +1570,27 @@ errorExt.type 所有值参考：
 
 //Extend jQuery
 ;(function($, Uploader){
-	$.fn.uploader = function(ops){
-		if(!$.isPlainObject(ops)){
-			ops = {};
+	$.fn.uploader = function(options){
+		if(!$.isPlainObject(options)){
+			options = {};
 		}
 
-		var attrOps = this.attr('data-uploader-options') || {};
-		if(typeof attrOps === 'string'){
-			try{
-				attrOps = $.parseJSON(attrOps);
+		return this.each(function(){
+			var attrOps = this.getAttribute('data-uploader-options');
+			if(typeof attrOps === 'string'){
+				try{
+					attrOps = $.parseJSON(attrOps);
+				}
+				catch(_){}
 			}
-			catch(_){}
-		}
+			var ops = $.extend({}, options, attrOps);
+			if(!ops.action && this.form){
+				ops.action = this.form.action;
+			}
+			ops.fieldName = this.name;
+			ops.input = this;
 
-		Uploader.mix(ops, attrOps);
-		ops.fieldName = this.attr('name');
-		ops.input = this;
-
-		var uploader = new Uploader(ops);
-		this.data('uploader', uploader);
-		return this;
+			$.data(this, 'uploader', new Uploader(ops));
+		});
 	};
 })(jQuery, this.ds && ds.Uploader);
