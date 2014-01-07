@@ -1449,7 +1449,7 @@ errorExt.type 所有值参考：
 	UploadWidget.prototype = {
 		constructor: UploadWidget,
 		init: function(ops){
-			ops = this.ops = mix(UploadWidget.defaultOptions, ops, true);
+			ops = this.ops = mix(ops, UploadWidget.defaultOptions);
 
 			var shell = this.shell = $(ops.shell);
 			if(!shell.length){ throw 'Param shell error'; }
