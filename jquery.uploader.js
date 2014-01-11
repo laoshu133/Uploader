@@ -651,8 +651,7 @@ errorExt.type 所有值参考：
 				})
 				.bind('change.ds_uploader', function(){
 					self.add(this.files);
-
-					this.value = '';
+					self.rebuildInput();
 				});
 
 				//Drop Files
