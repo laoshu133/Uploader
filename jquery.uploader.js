@@ -726,7 +726,7 @@ errorExt.type 所有值参考：
 					else{
 						self.fireEvent({
 							type: '@uploaderror',
-							message: '网络错误，或者服务器出错',
+							message: 'Network error or server error',
 							file: file
 						});
 					}
@@ -823,9 +823,9 @@ errorExt.type 所有值参考：
 				target: form.target
 			};
 			iframe.elem.one('load', function(){
-				var ret = null, hasErr = false, message = '网络错误，或者服务器出错';
+				var ret = null, hasErr = false, message = 'Network error or server error';
 				try{
-					message = '返回数据读取错误，可能为跨域引起';
+					message = 'Server error or not allowed access';
 
 					var doc = iframe.elem[0].contentWindow.document;
 					ret = (doc.body || doc.documentElement).innerHTML || ret;
@@ -833,7 +833,7 @@ errorExt.type 所有值参考：
 				catch(_){
 					hasErr = true;
 				}
-				
+
 				//Clean uploader, restore uploader
 				clearInterval(file.progressTimer);
 				delete file.iframe;
