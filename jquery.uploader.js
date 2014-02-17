@@ -703,7 +703,7 @@ errorExt.type 所有值参考：
 				var 
 				speed = file.getSpeed(e.loaded),
 				progress = 100 * e.loaded / e.total,
-				remaining = 1000 * (e.total - e.loaded) / speed;
+				remaining = speed > 0 ? 1000 * (e.total - e.loaded) / speed : 0;
 
 				self.fireEvent({
 					type: '@progress',
@@ -1084,7 +1084,7 @@ errorExt.type 所有值参考：
 						file = this.getFile(fileData),
 						speed = file.getSpeed(loaded),
 						progress = 100 * loaded / total,
-						remaining = 1000 * (total - loaded) / speed;
+						remaining = speed > 0 ? 1000 * (total - loaded) / speed : 0;
 
 						self.fireEvent({
 							type: '@progress',
