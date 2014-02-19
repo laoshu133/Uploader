@@ -493,7 +493,7 @@ errorExt.type 所有值参考：
 			ops = this.ops,
 			type = 'beforeupload',
 			errMsg = 'Uploader uninitialized Or status error';
-			if(this === file.uploader || this.status === 'ready' && ops.onbeforeupload.call(this, file) !== false){
+			if(this === file.uploader && this.status === 'ready' && ops.onbeforeupload.call(this, file) !== false){
 				errMsg = 'File Data error';
 				if(this._callTypeFunc('Upload', file)){
 					this.status = 'uploading';
