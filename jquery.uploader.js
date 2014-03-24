@@ -82,7 +82,7 @@ errorExt.type 所有值参考：
 		onbeforeadd: noop, //return false则阻止文件进入列队
 		onstart: noop,
 		onbeforeupload: noop, //return false则阻止文件上传
-		onreceivedata: noop, //请求完成，onupload之前响应；return false则阻止onload触发
+		onreceivedata: noop, //请求完成，onupload之前响应；return false则阻止onupload触发
 		onupload: noop,
 		onprogress: noop,
 		onabort: noop,
