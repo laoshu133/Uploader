@@ -1,7 +1,7 @@
 /**
 * jquery.uploader.js
 * @create: 2013.11.01
-* @update: 2013.11.21
+* @update: 2014.03.27
 * admin@laoshu133.com
 */
 /**
@@ -204,10 +204,10 @@ errorExt.type 所有值参考：
 			})
 			.addListener('@upload', function(e){
 				var 
+				hasErr = false,
 				errType, message,
 				file = e.file, ret = e.result,
-				ops = this.ops, dataType = ops.dataType,
-				hasErr = false, complete = false, uploaded = 0;
+				ops = this.ops, dataType = ops.dataType;
 
 				if(dataType === 'json' && typeof ret === 'string'){
 					try{
@@ -240,25 +240,20 @@ errorExt.type 所有值参考：
 				else{
 					file.setState('success');
 					this.fireEvent(mix({type: 'upload'}, e), ret);
-
-					this.eachQueue(function(file){
-						file.status === 'success' && ++uploaded;
-					});
-					if(ops.maxFileCount > 0 && uploaded >= ops.maxFileCount){
-						this.status = 'complete';
-						this.uploadQueue = [];
-						this.disable();
-						this.fireEvent({
-							type: 'complete',
-							file: file
-						});
-						complete = true;
-					}
 				}
 
-				if(!complete){
+				if(!checkCompleted(this, file)){
 					this.status = 'ready';
 					this.start();
+				}
+				else{
+					this.disable();
+					//this.uploadQueue = [];
+					this.status = 'complete';
+					this.fireEvent({
+						type: 'complete',
+						file: file
+					});
 				}
 			})
 			.addListener('@uploaderror', function(e){
@@ -270,9 +265,34 @@ errorExt.type 所有值参考：
 					message: errMsg
 				});
 
-				this.status = 'ready';
-				this.start();
+				if(!checkCompleted(this, e.file)){
+					this.status = 'ready';
+					this.start();
+				}
+				else{
+					this.disable();
+					this.status = 'complete';
+					this.fireEvent({
+						type: 'complete',
+						file: file
+					});
+				}
 			});
+
+			function checkCompleted(uploader){
+				var maxFileCount = uploader.ops.maxFileCount;
+
+				if(maxFileCount > 0){
+					var uploaded = 0;
+					uploader.eachQueue(function(file){
+						if(file.status === 'success' || file.status === 'error'){
+							++uploaded;
+						}
+					});
+					return uploaded >= maxFileCount;
+				}
+				return false;
+			}
 		},
 		initHandler: function(inx){
 			inx = Math.max(0, ~~inx);
@@ -523,25 +543,27 @@ errorExt.type 所有值参考：
 
 			var fileStatus = file.status;
 			if(fileStatus !== 'success' && file === this.uploadQueue[file.uploadIndex]){
-				this._callTypeFunc('Abort', file);
+				if(fileStatus !== 'abort'){
+					this._callTypeFunc('Abort', file);
+					delete this.uploadQueue[file.uploadIndex];
+					this.fileCount--;
 
-				delete this.uploadQueue[file.uploadIndex];
-				this.fileCount--;
-				file.setState('abort');
-				this.fireEvent({
-					type: 'abort',
-					file: file
-				});
+					file.setState('abort');
+					this.fireEvent({
+						type: 'abort',
+						file: file
+					});
+				}
 
 				//Continue Queue
 				if(this.status !== 'complete'){
-					if(fileStatus=== 'uploading'){
+					this.enable();
+					if(fileStatus === 'uploading'){
 						this.status = 'ready';
 					}
 					if(this.fileCount > 0){
 						this.start();
 					}
-					this.enable();
 				}
 			}
 			return this;
@@ -555,16 +577,21 @@ errorExt.type 所有值参考：
 				this.abort(file);
 				this._callTypeFunc('Remove', file);
 
-				if(file === this.uploadQueue[file.uploadIndex]){
-					delete this.uploadQueue[file.uploadIndex];
+				file.uploader = null;
+				file.destroy();
+
+				//Restore status
+				if(file.status === 'success'){
 					this.fileCount--;
 				}
-				file.destroy();
 
 				this.fireEvent({
 					type: 'remove',
 					file: file
 				});
+
+				this.status = 'ready';
+				this.enable();
 			}
 			return this;
 		},
